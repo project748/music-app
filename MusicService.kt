@@ -1,27 +1,39 @@
-﻿import android.app.Service
+package com.example.musicapp
+
+import android.app.Service
 import android.content.Intent
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.IBinder
 
 class MusicService : Service() {
+
     private lateinit var mediaPlayer: MediaPlayer
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val songUrl = intent?.getStringExtra("songUrl") ?: return START_NOT_STICKY
-        mediaPlayer = MediaPlayer()
-        mediaPlayer.setDataSource(songUrl)
-        mediaPlayer.prepare()
-        mediaPlayer.start()
+        val songUrl = intent?.getStringExtra("songUrl")
+
+        if (!songUrl.isNullOrEmpty()) {
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(songUrl)
+                prepare()
+                start()
+            }
+        }
+
         return START_STICKY
     }
 
     override fun onDestroy() {
-        mediaPlayer.stop()
-        mediaPlayer.release()
         super.onDestroy()
+        mediaPlayer.release()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent?): IBinder? = null
 }
